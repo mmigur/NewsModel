@@ -1,12 +1,14 @@
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
+import pandas as pd
 
 # Загружаем модель BERT для классификации
 model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 # Список категорий
-categories = ["Технологии", "Fashion", "Шоу-биз", "Общее"]
+posts = pd.read_excel(r'C:\Users\anama\Downloads\posts (1).xlsx')
+categories = ['Финансы', 'Технологии', 'Политика', 'Шоубиз', 'Fashion', 'Крипта', 'Путешествия/релокация', 'Образовательный контент', 'Развлечения', 'Общеe']
 
 def classify_text(text):
     # Токенизируем текст и добавляем специальные токены [CLS] и [SEP]
@@ -31,6 +33,6 @@ def classify_text(text):
 
     return predicted_category
 
-text = "Смартфоны и гаджеты на базе Android"
-predicted_category = classify_text(text)
-print("Predicted category:", predicted_category)
+for post in posts['text'][:30]:
+    print(f'текст: {post}')
+    print(f'категория: {classify_text(post)}')
