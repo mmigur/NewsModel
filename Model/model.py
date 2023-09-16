@@ -1,38 +1,51 @@
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
-import pandas as pd
+from transformers import BertTokenizer, BertForSequenceClassification
+from torch.nn.functional import softmax
 
-# Загружаем модель BERT для классификации
-model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased")
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
-# Список категорий
-posts = pd.read_excel(r'C:\Users\anama\Downloads\posts (1).xlsx')
-categories = ['Финансы', 'Технологии', 'Политика', 'Шоубиз', 'Fashion', 'Крипта', 'Путешествия/релокация', 'Образовательный контент', 'Развлечения', 'Общеe']
+# Эта модель полное говно если че пока что
+# Загрузка предварительно обученной модели BERT и токенизатора
+model_name = "bert-base-uncased"
+tokenizer = BertTokenizer.from_pretrained(model_name)
+model = BertForSequenceClassification.from_pretrained(model_name, num_labels=9)
 
-def classify_text(text):
-    # Токенизируем текст и добавляем специальные токены [CLS] и [SEP]
-    inputs = tokenizer.encode_plus(
-        text,
-        add_special_tokens=True,
-        truncation=True,
-        max_length=128,
-        return_tensors='pt'
-    )
+# Функция для классификации текста
+def classify_text(texts):
+    inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="pt", max_length=512)
 
-    # Подаем векторизованный текст на вход модели BERT
-    outputs = model(**inputs)
+    with torch.no_grad():
+        logits = model(**inputs).logits
 
-    # Получаем вероятности для каждой категории
-    logits = outputs.logits
-    probabilities = torch.softmax(logits, dim=1).tolist()[0]
+    probabilities = softmax(logits, dim=1)
 
-    # Определяем наиболее вероятную категорию
-    max_prob_index = probabilities.index(max(probabilities))
-    predicted_category = categories[max_prob_index]
+    category_names = [
+        "Финансы", "Технологии", "Политика", "Шоу-биз", "Fashion", "Крипта",
+        "Путешествия/релокация", "Образовательный контент", "Развлечения", "Общее"
+    ]
+    
+    predicted_labels = torch.argmax(probabilities, dim=1)
+    predicted_categories = [category_names[label] for label in predicted_labels]
+    
+    return predicted_categories, probabilities
 
-    return predicted_category
+# Список текстов для классификации
+texts = [
+    "Это текст о финансах и экономике.",
+    "Новости о последних технологических достижениях.",
+    "Политические новости и анализ событий.",
+    "Скандалы и события из мира шоу-бизнеса.",
+    "Мода и стиль в одежде.",
+    "Криптовалюты и блокчейн технологии.",
+    "Путешествия и советы по релокации.",
+    "Образовательный контент и обучение.",
+    "Развлекательные новости и события.",
+    "Общие новости и статьи."
+]
 
-for post in posts['text'][:30]:
-    print(f'текст: {post}')
-    print(f'категория: {classify_text(post)}')
+predicted_categories, probabilities = classify_text(texts)
+
+for text, category, prob in zip(texts, predicted_categories, probabilities):
+    print(f"Текст: {text}")
+    print(f"Категория: {category}")
+    print(f"Вероятности: {prob}")
+    print()
