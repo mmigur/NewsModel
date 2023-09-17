@@ -2,11 +2,14 @@ import string
 import re
 from dataclasses import dataclass
 
+import numpy as np
+
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize
 
 from pymorphy2 import MorphAnalyzer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 nltk.download('stopwords')
 nltk.download('punkt')
