@@ -52,3 +52,7 @@ class TextPreprocess:
 
     def tokenize(self) -> None:
         self.post = sent_tokenize(' '.join([word.strip() for word in self.post.split(' ')]))
+
+    def vectorize(news: str) -> np.array:
+        tf_idf_model = TfidfVectorizer().fit_transform(news)
+        return tf_idf_model.toarray()
