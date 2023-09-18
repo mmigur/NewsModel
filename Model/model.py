@@ -1,51 +1,33 @@
-import torch
-from transformers import BertTokenizer, BertForSequenceClassification
-from torch.nn.functional import softmax
+import pandas as pd
+import numpy as np
 
+from sklearn.metrics.pairwise import cosine_similarity
+from prepare_data import TextPreprocess
 
-# Эта модель полное говно если че пока что
-# Загрузка предварительно обученной модели BERT и токенизатора
-model_name = "bert-base-uncased"
-tokenizer = BertTokenizer.from_pretrained(model_name)
-model = BertForSequenceClassification.from_pretrained(model_name, num_labels=9)
+class DeleteDuplicte:
 
-# Функция для классификации текста
-def classify_text(texts):
-    inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="pt", max_length=512)
+    def __init__(self, text_df):
+        self.df = text_df.sample(n=500, random_state=42)
 
-    with torch.no_grad():
-        logits = model(**inputs).logits
+    def remove_duplicate(self):
+        self.df['result_text'] = self.df['text']
+        self.df['result_text'] = self.df['result_text'].apply(str)
+        self.df['result_text'] = self.df['result_text'].apply(TextPreprocess.remove_shit)
+        self.df['result_text'] = self.df['result_text'].apply(TextPreprocess.lemmatize)
 
-    probabilities = softmax(logits, dim=1)
+        self.tf_idf_matrix = TextPreprocess.vectorize(self.df['result_text'])
+            
+        self.similarity_matrix = cosine_similarity(self.tf_idf_matrix)
+        n = self.similarity_matrix.shape[0]
 
-    category_names = [
-        "Финансы", "Технологии", "Политика", "Шоу-биз", "Fashion", "Крипта",
-        "Путешествия/релокация", "Образовательный контент", "Развлечения", "Общее"
-    ]
-    
-    predicted_labels = torch.argmax(probabilities, dim=1)
-    predicted_categories = [category_names[label] for label in predicted_labels]
-    
-    return predicted_categories, probabilities
+        indices_to_keep = list(range(n))
+        for i in range(n):
+            for j in range(i + 1, n):
+                if self.similarity_matrix[i, j] > 0.6:
+                    if j in indices_to_keep:
+                        self.df = self.df.drop(
+                            index=self.df.sample(n=500, random_state=42).index.values[j],
+                            axis=0
+                        )
 
-# Список текстов для классификации
-texts = [
-    "Это текст о финансах и экономике.",
-    "Новости о последних технологических достижениях.",
-    "Политические новости и анализ событий.",
-    "Скандалы и события из мира шоу-бизнеса.",
-    "Мода и стиль в одежде.",
-    "Криптовалюты и блокчейн технологии.",
-    "Путешествия и советы по релокации.",
-    "Образовательный контент и обучение.",
-    "Развлекательные новости и события.",
-    "Общие новости и статьи."
-]
-
-predicted_categories, probabilities = classify_text(texts)
-
-for text, category, prob in zip(texts, predicted_categories, probabilities):
-    print(f"Текст: {text}")
-    print(f"Категория: {category}")
-    print(f"Вероятности: {prob}")
-    print()
+        return self.df
