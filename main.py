@@ -1,5 +1,4 @@
-from Model.prepare_data import TextPreprocess
-from Model.model import DeleteDuplicte
+from Model.delete_duplicate_model import DeleteDuplicte
 from Model.api_utils import get_categorired_dataframe, pd # pandas
 from Model.real_config import CANDIDATE_LABELS
 
