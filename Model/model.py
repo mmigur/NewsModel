@@ -7,8 +7,9 @@ class DeleteDuplicte:
     """ Класс для удаления дубликатов из набора данных. """
 
     def __init__(self, text_df):
-        self.indexes = text_df.sample(n=100, random_state=42).index.values
-        self.df = text_df.sample(n=100, random_state=42)
+        # self.indexes = text_df.sample(n=100, random_state=42).index.values (replaced)
+        self.indexes = text_df.index.values
+        self.df = text_df
         self.tokenizer = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny")
         self.model = AutoModel.from_pretrained("cointegrated/rubert-tiny")
 
@@ -16,6 +17,10 @@ class DeleteDuplicte:
         """
         Функция для удаления дубликатов.
         """
+        # возвращаем датафрейм, если он пустой
+        if self.df.empty:
+            return self.df
+
         self.df['result_text'] = self.df['text']
         self.df['result_text'] = self.df['result_text'].apply(str)
         self.df['result_text'] = self.df['result_text'].apply(TextPreprocess.remove_shit) # удаление мусора.
@@ -52,4 +57,4 @@ class DeleteDuplicte:
                             axis=0
                         )
 
-        return self.df
+        return self.df.drop(columns=['vectors', 'vec_length', 'result_text'])

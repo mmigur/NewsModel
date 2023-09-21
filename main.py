@@ -1,24 +1,39 @@
-"""from Model.prepare_data import TextPreprocess
+from Model.prepare_data import TextPreprocess
+from Model.model import DeleteDuplicte
+from Model.api_utils import get_categorired_dataframe, pd # pandas
+from Model.real_config import CANDIDATE_LABELS
+
 from fastapi import FastAPI
+
 
 app = FastAPI(
     title="AI news model",
-    version="0.0.1"
+    version="1.0.0"
 )
 
+@app.get('/get-filtered')
+def getFilteredDataset():
+    posts = pd.read_excel('./base_dataset.xlsx')
+    categorized = get_categorired_dataframe(posts=posts, candidate_labels=CANDIDATE_LABELS)
+
+    without_duplicates = [
+        DeleteDuplicte(dataframe).remove_duplicate() for dataframe in categorized.values()
+    ]
+
+    pd.concat(without_duplicates, ignore_index=False).to_excel('final_dataset.xlsx', header=False, index=False)
+
+    return {"status": 200, "clear_news_text": "ok"}
+
+
+""" # разбить каждую категорию на pandas dataframe
 @app.get('/clf_news_target/{news_text}')
 def getNewsTarget(news_text: str):
     text_prepare = TextPreprocess(news_text).clear_all()
-    return {"status": 200, "clear_news_text": "ok"}"""
-
-
-
-import pandas as pd
-from Model.model import DeleteDuplicte
+    return {"status": 200, "clear_news_text": "ok"}
 
 
 data_frame = pd.read_excel('./Notebooks/Data/posts (1).xlsx')
 print(f"Набор данных до: {data_frame.shape}")
 
 dd = DeleteDuplicte(data_frame).remove_duplicate()
-print(f"Набор данных после: {dd.shape}")
+print(f"Набор данных после: {dd.keys()}") """
