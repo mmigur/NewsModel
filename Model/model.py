@@ -16,6 +16,7 @@ class DeleteDuplicte:
         """
         Функция для удаления дубликатов.
         """
+        self.result_columns = ['channel_id', 'text']
         self.df['result_text'] = self.df['text']
         self.df['result_text'] = self.df['result_text'].apply(str)
         self.df['result_text'] = self.df['result_text'].apply(TextPreprocess.remove_shit) # удаление мусора.
@@ -52,4 +53,4 @@ class DeleteDuplicte:
                             axis=0
                         )
 
-        return self.df
+        return self.df[self.result_columns]

@@ -1,0 +1,5 @@
+config.py
+config2.py
+./Notebooks/main.ipynb
+./venv
+.ipynb_checkpoints
