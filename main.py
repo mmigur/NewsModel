@@ -1,5 +1,5 @@
 import pandas as pd
-from Model.model import DeleteDuplicte
+from Model.delete_duplicate_model import DeleteDuplicte
 from fastapi import FastAPI
 
 
@@ -12,4 +12,4 @@ app = FastAPI(
 def getNewsTarget(data_frame: str):
     post_df = pd.read_excel('./Notebooks/Data/posts (1).xlsx')
     dd = DeleteDuplicte(post_df).remove_duplicate()
-    return {"status": 200, "removed_duplicate_dataframe": f"{dd.shape}"}
+    return {"status": 200, "removed_duplicate_dataframe": f"{dd.values}"}
