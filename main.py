@@ -12,14 +12,14 @@ app = FastAPI(
 
 @app.get('/get-filtered')
 def getFilteredDataset():
-    posts = pd.read_excel('./base_dataset.xlsx')
+    posts = pd.read_csv('./base_dataset.csv')
     categorized = get_categorired_dataframe(posts=posts, candidate_labels=CANDIDATE_LABELS)
 
     without_duplicates = [
         DeleteDuplicte(dataframe).remove_duplicate() for dataframe in categorized.values()
     ]
 
-    pd.concat(without_duplicates, ignore_index=False).to_excel('final_dataset.xlsx', header=False, index=False)
+    pd.concat(without_duplicates, ignore_index=False).to_csv('final_dataset.csv', index=False)
 
     return {"status": 200, "clear_news_text": "ok"}
 
